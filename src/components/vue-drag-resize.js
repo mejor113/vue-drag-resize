@@ -57,11 +57,14 @@ export default {
             type: Boolean, default: false,
         },
         positionLimitation: {
-            type: Object, default: {
-                x1: null,
-                y1: null,
-                x2: null,
-                y2: null,
+            type: Object,
+            default() {
+                return({
+                    x1: null,
+                    y1: null,
+                    x2: null,
+                    y2: null,
+                });
             }
         },
         snapToGrid: {
@@ -332,8 +335,6 @@ export default {
 
             this.saveDimensionsBeforeMove({ pointerX, pointerY });
 
-            console.warn('TEST CHECK this.positionLimitation');
-            console.log(this.positionLimitation);
             if (
                 this.positionLimitation &&
                 this.positionLimitation.x1 !== null &&
@@ -342,9 +343,7 @@ export default {
                 this.positionLimitation.y2 !== null
             ) {
                 this.limits = this.calcPositionLimitation();
-            }
-
-            if (this.parentLimitation) {
+            } else if (this.parentLimitation) {
                 this.limits = this.calcDragLimitation();
             }
         },
@@ -437,7 +436,6 @@ export default {
         saveDimensionsBeforeMove({ pointerX, pointerY }) {
             this.dimensionsBeforeMove.pointerX = pointerX;
             this.dimensionsBeforeMove.pointerY = pointerY;
-
             this.dimensionsBeforeMove.left = this.left;
             this.dimensionsBeforeMove.right = this.right;
             this.dimensionsBeforeMove.top = this.top;
@@ -565,14 +563,12 @@ export default {
         },
 
         calcPositionLimitation() {
-            console.warn('HELLO calcPositionLimitation');
-            const { positionLimitation } = this;
-
+            const { positionLimitation, parentWidth, parentHeight } = this;
             return {
                 left: { min: positionLimitation.x2, max: positionLimitation.x1 - this.width },
-                right: { min: positionLimitation.x2, max: positionLimitation.x1 - this.width },
+                right: { min: positionLimitation.x2, max: parentWidth - positionLimitation.x1 - this.width },
                 top: { min: positionLimitation.y2, max: positionLimitation.y1 - this.height },
-                bottom: { min: positionLimitation.y2, max: positionLimitation.y1 - this.height },
+                bottom: { min: positionLimitation.y2, max: parentHeight - positionLimitation.y1 - this.height },
             };
         },
 
@@ -739,11 +735,11 @@ export default {
         },
 
         width() {
-            return this.parentWidth - this.left - this.right;
+            return this.w == 'auto' ? this.parentWidth - this.left - this.right : this.w;
         },
 
         height() {
-            return this.parentHeight - this.top - this.bottom;
+            return this.h == 'auto' ? this.parentHeight - this.top - this.bottom : this.h;
         },
 
         rect() {
